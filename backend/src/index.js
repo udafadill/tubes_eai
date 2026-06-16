@@ -57,11 +57,11 @@ async function startServer() {
 
   // Serve static frontend files from client/
   app.use(cors());
-  app.use(express.static(path.join(__dirname, '../client')));
+  app.use(express.static(path.join(__dirname, './client')));
 
   // Catch-all: serve index.html for root path (client-side routing)
   app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/index.html'));
+    res.sendFile(path.join(__dirname, './client/index.html'));
   });
 
   // Apply middleware
