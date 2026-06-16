@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Digital Library — Browse books, manage your loans, and discover your next read." />
+  <title>Digital Library — My Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Variables ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary:    #050d14;
+      --bg-secondary:  #0a1628;
+      --bg-card:       rgba(10, 22, 40, 0.75);
+      --bg-glass:      rgba(255, 255, 255, 0.03);
+      --border:        rgba(255, 255, 255, 0.07);
+      --border-focus:  rgba(6, 182, 212, 0.6);
+      --text-primary:  #e2e8f0;
+      --text-secondary:#94a3b8;
+      --text-muted:    #64748b;
+      --accent:        #06b6d4;
+      --accent-light:  #22d3ee;
+      --accent-glow:   rgba(6, 182, 212, 0.2);
+      --accent-2:      #8b5cf6;
+      --accent-2-glow: rgba(139, 92, 246, 0.15);
+      --success:       #10b981;
+      --success-bg:    rgba(16, 185, 129, 0.12);
+      --error:         #f43f5e;
+      --error-bg:      rgba(244, 63, 94, 0.12);
+      --warning:       #f59e0b;
+      --warning-bg:    rgba(245, 158, 11, 0.12);
+      --gradient-1:    linear-gradient(135deg, #06b6d4, #8b5cf6);
+      --gradient-2:    linear-gradient(135deg, #0ea5e9, #06b6d4);
+      --gradient-warm: linear-gradient(135deg, #f59e0b, #f43f5e);
+      --radius-sm:     8px;
+      --radius-md:     12px;
+      --radius-lg:     16px;
+      --radius-xl:     24px;
+      --shadow:        0 4px 24px rgba(0, 0, 0, 0.4);
+      --shadow-lg:     0 12px 48px rgba(0, 0, 0, 0.5);
+      --transition:    0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Background Decoration ────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(circle at 25% 25%, rgba(6, 182, 212, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 10%, rgba(14, 165, 233, 0.04) 0%, transparent 50%);
+      z-index: -1;
+      animation: bgDrift 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgDrift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-2%, -2%) scale(1.03); }
+    }
+
+    /* ── Toast Messages ───────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .toast {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 500;
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-lg);
+      animation: slideIn 0.35s ease, fadeOut 0.35s ease 3.5s forwards;
+      max-width: 380px;
+      border: 1px solid;
+    }
+
+    .toast.success { background: var(--success-bg); border-color: rgba(16, 185, 129, 0.3); color: #6ee7b7; }
+    .toast.error   { background: var(--error-bg);   border-color: rgba(244, 63, 94, 0.3);  color: #fda4af; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(40px); }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── LOGIN SCREEN ──────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem 2.5rem 2rem;
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+      animation: scaleIn 0.5s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-1);
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .login-icon {
+      font-size: 3.5rem;
+      display: block;
+      margin-bottom: 0.75rem;
+      animation: floatSlow 4s ease-in-out infinite;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+
+    .login-card h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.25rem;
+    }
+
+    .login-card > p.login-subtitle {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Auth Tab Switcher ──────────────────────────────────── */
+    .auth-tabs {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.7rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .auth-tab:first-child { border-right: 1px solid var(--border); }
+
+    .auth-tab:hover {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .auth-tab.active {
+      background: var(--gradient-1);
+      color: #fff;
+    }
+
+    /* ── Auth Forms ──────────────────────────────────────────── */
+    .auth-form { display: none; }
+    .auth-form.active { display: block; animation: fadeUp 0.3s ease; }
+
+    .form-field {
+      margin-bottom: 0.85rem;
+      text-align: left;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.3rem;
+      padding-left: 0.15rem;
+    }
+
+    .form-field input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-field input::placeholder { color: var(--text-muted); }
+
+    .form-field input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .form-field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--gradient-1);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px var(--accent-glow);
+      letter-spacing: 0.02em;
+      margin-top: 0.25rem;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-register {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
+      letter-spacing: 0.02em;
+      margin-top: 0.25rem;
+    }
+
+    .btn-register:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-register:active { transform: translateY(0); }
+
+    .btn-register:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-footer {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .login-footer a {
+      color: var(--accent-light);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .login-footer a:hover { text-decoration: underline; }
+
+    .register-success {
+      display: none;
+      text-align: center;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .register-success.visible { display: block; }
+
+    .register-success .success-icon {
+      font-size: 3.5rem;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    .register-success h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #6ee7b7;
+      margin-bottom: 0.4rem;
+    }
+
+    .register-success p {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .register-success .user-id-display {
+      display: inline-block;
+      padding: 0.5rem 1.5rem;
+      border-radius: var(--radius-md);
+      background: var(--accent-glow);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      font-size: 1.5rem;
+      font-weight: 800;
+      background-image: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0.75rem 0;
+    }
+
+    .btn-enter-after-register {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: var(--gradient-1);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px var(--accent-glow);
+      margin-top: 0.75rem;
+    }
+
+    .btn-enter-after-register:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+
+    @media (max-width: 480px) {
+      .form-field-row { grid-template-columns: 1fr; }
+      .login-card { padding: 2rem 1.5rem 1.5rem; }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── MAIN APP (hidden until login) ─────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .app-container { display: none; }
+    .app-container.visible { display: block; }
+    .login-screen.hidden { display: none; }
+
+    /* ── Top Navbar ────────────────────────────────────────── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10, 22, 40, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-bar__brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .top-bar__brand span { font-size: 1.5rem; }
+
+    .top-bar__brand h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .top-bar__user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--gradient-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+    }
+
+    .user-email {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-logout {
+      padding: 0.4rem 0.9rem;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: var(--radius-sm);
+      background: var(--error-bg);
+      color: #fda4af;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      margin-left: 0.5rem;
+    }
+
+    .btn-logout:hover {
+      background: rgba(244, 63, 94, 0.25);
+      border-color: rgba(244, 63, 94, 0.5);
+    }
+
+    /* ── Navigation Pills ─────────────────────────────────── */
+    .nav-pills {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.25rem 1rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-pill {
+      padding: 0.6rem 1.4rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-glass);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+      font-family: inherit;
+    }
+
+    .nav-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: var(--accent-glow);
+    }
+
+    .nav-pill.active {
+      background: var(--gradient-1);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    /* ── Container ────────────────────────────────────────── */
+    .main-container {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* ── Sections ─────────────────────────────────────────── */
+    .view-section {
+      display: none;
+      animation: fadeUp 0.45s ease;
+    }
+
+    .view-section.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Welcome Banner ───────────────────────────────────── */
+    .welcome-banner {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+    }
+
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .welcome-banner h2 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+      position: relative;
+    }
+
+    .welcome-banner h2 span {
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .welcome-banner p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      position: relative;
+    }
+
+    /* ── Quick Stats ───────────────────────────────────────── */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .qs-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .qs-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .qs-card:nth-child(1)::after { background: var(--gradient-1); }
+    .qs-card:nth-child(2)::after { background: linear-gradient(135deg, #10b981, #059669); }
+    .qs-card:nth-child(3)::after { background: var(--gradient-warm); }
+
+    .qs-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .qs-card:hover::after { opacity: 1; }
+
+    .qs-card .qs-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .qs-card .qs-value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .qs-card:nth-child(2) .qs-value {
+      background: linear-gradient(135deg, #10b981, #059669);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .qs-card:nth-child(3) .qs-value {
+      background: var(--gradient-warm);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .qs-card .qs-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Section Headers ──────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    /* ── Search Bar ────────────────────────────────────────── */
+    .search-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .search-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-wrapper::before {
+      content: '🔍';
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .filter-select {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+      cursor: pointer;
+      min-width: 140px;
+    }
+
+    .filter-select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* ── Book Grid ─────────────────────────────────────────── */
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .book-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .book-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-1);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .book-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .book-card:hover::before { opacity: 1; }
+
+    .book-card__cover {
+      width: 100%;
+      height: 140px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .book-card__cover.available-bg {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(139, 92, 246, 0.12));
+    }
+
+    .book-card__cover.unavailable-bg {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(245, 158, 11, 0.1));
+    }
+
+    .book-card__title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .book-card__author {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .book-card__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .book-card__year {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 600;
+    }
+
+    .badge.available {
+      background: var(--success-bg);
+      color: #6ee7b7;
+    }
+
+    .badge.unavailable {
+      background: var(--error-bg);
+      color: #fda4af;
+    }
+
+    .btn-borrow-card {
+      width: 100%;
+      padding: 0.65rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--gradient-1);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 0.75rem;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    .btn-borrow-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 18px var(--accent-glow);
+    }
+
+    .btn-borrow-card:disabled {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* ── Cards (general) ──────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card__title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-primary);
+    }
+
+    .card__title span { font-size: 1.2rem; }
+
+    /* ── Loan Items ────────────────────────────────────────── */
+    .loan-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .loan-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.15rem 1.35rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      transition: var(--transition);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .loan-item:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .loan-info { flex: 1; min-width: 200px; }
+    .loan-info strong { color: var(--text-primary); }
+
+    .loan-info small {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin-top: 0.15rem;
+    }
+
+    .loan-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .badge-status {
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-status.active {
+      background: var(--warning-bg);
+      color: #fcd34d;
+    }
+
+    .badge-status.returned {
+      background: var(--success-bg);
+      color: #6ee7b7;
+    }
+
+    .btn-return {
+      padding: 0.4rem 0.9rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-return:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    /* ── Ghost Buttons ────────────────────────────────────── */
+    .btn-ghost {
+      padding: 0.45rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: var(--accent-glow);
+    }
+
+    /* ── Empty State ───────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state span {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    .empty-state p {
+      font-size: 0.9rem;
+    }
+
+    /* ── Spinner ───────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--accent-light);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 0.4rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Admin Link ────────────────────────────────────────── */
+    .admin-link {
+      text-align: center;
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+
+    .admin-link a {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .admin-link a:hover {
+      color: var(--accent-light);
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .top-bar { padding: 0.75rem 1rem; flex-wrap: wrap; gap: 0.5rem; }
+      .book-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+      .quick-stats { grid-template-columns: 1fr 1fr; }
+      .login-card { padding: 2rem 1.5rem; }
+      .welcome-banner { padding: 1.75rem; }
+      .welcome-banner h2 { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 480px) {
+      .book-grid { grid-template-columns: 1fr; }
+      .quick-stats { grid-template-columns: 1fr; }
+      .top-bar__user .user-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ═══════ LOGIN / REGISTER SCREEN ═══════ -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <span class="login-icon">📖</span>
+      <h1>My Library</h1>
+      <p class="login-subtitle">Sign in or create a new account</p>
+
+      <!-- Auth Tab Switcher -->
+      <div class="auth-tabs" id="authTabs">
+        <button class="auth-tab active" data-auth="login" id="tab-login">🔑 Login</button>
+        <button class="auth-tab" data-auth="register" id="tab-register">📝 Register</button>
+      </div>
+
+      <!-- ── LOGIN FORM ── -->
+      <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-field">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" placeholder="john@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-field">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn-login" id="btn-login">🔑 Enter Library</button>
+      </form>
+
+      <!-- ── REGISTER FORM ── -->
+      <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-field">
+          <label for="regName">Full Name</label>
+          <input type="text" id="regName" placeholder="e.g. John Doe" required />
+        </div>
+        <div class="form-field-row">
+          <div class="form-field">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" placeholder="john@example.com" required />
+          </div>
+          <div class="form-field">
+            <label for="regPhone">Phone <span style="opacity:0.5;text-transform:none;font-weight:400">(optional)</span></label>
+            <input type="text" id="regPhone" placeholder="+62 812-3456" />
+          </div>
+        </div>
+        <div class="form-field-row">
+          <div class="form-field">
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" placeholder="Min. 4 characters" required minlength="4" />
+          </div>
+          <div class="form-field">
+            <label for="regPasswordConfirm">Confirm Password</label>
+            <input type="password" id="regPasswordConfirm" placeholder="Re-enter password" required minlength="4" />
+          </div>
+        </div>
+        <button type="submit" class="btn-register" id="btn-register">📝 Create Account</button>
+      </form>
+
+      <!-- ── REGISTER SUCCESS ── -->
+      <div class="register-success" id="registerSuccess">
+        <span class="success-icon">🎉</span>
+        <h3>Account Created!</h3>
+        <p>Welcome, <strong id="newUserName">—</strong>!</p>
+        <p style="font-size:0.82rem;color:var(--text-secondary);margin-top:0.25rem;">You can now login anytime with your email.</p>
+        <button class="btn-enter-after-register" onclick="enterAfterRegister()" id="btn-enter-after-register">🚀 Enter Library Now</button>
+      </div>
+
+      <div class="login-footer">
+        <a href="index.html">← Back to Admin Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MAIN APP ═══════ -->
+  <div class="app-container" id="appContainer">
+
+    <!-- Top Bar -->
+    <header class="top-bar" id="topBar">
+      <div class="top-bar__brand">
+        <span>📖</span>
+        <h2>My Library</h2>
+      </div>
+      <div class="top-bar__user">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-meta">
+          <div class="user-name" id="displayUserName">—</div>
+          <div class="user-email" id="displayUserEmail">—</div>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()" id="btn-logout">🚪 Logout</button>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-pills" id="navPills">
+      <button class="nav-pill active" data-view="home" id="nav-home">🏠 Home</button>
+      <button class="nav-pill" data-view="catalog" id="nav-catalog">📚 Catalog</button>
+      <button class="nav-pill" data-view="my-loans" id="nav-my-loans">📋 My Loans</button>
+    </nav>
+
+    <main class="main-container">
+
+      <!-- ═══════ HOME VIEW ═══════ -->
+      <section class="view-section active" id="view-home">
+        <div class="welcome-banner">
+          <h2>Welcome back, <span id="welcomeName">User</span> 👋</h2>
+          <p>Here's a quick overview of your library activity.</p>
+        </div>
+
+        <div class="quick-stats">
+          <div class="qs-card">
+            <span class="qs-icon">📚</span>
+            <div class="qs-value" id="statTotalBooks">0</div>
+            <div class="qs-label">Books in Library</div>
+          </div>
+          <div class="qs-card">
+            <span class="qs-icon">✅</span>
+            <div class="qs-value" id="statAvailableBooks">0</div>
+            <div class="qs-label">Available Now</div>
+          </div>
+          <div class="qs-card">
+            <span class="qs-icon">📖</span>
+            <div class="qs-value" id="statMyActiveLoans">0</div>
+            <div class="qs-label">My Active Loans</div>
+          </div>
+        </div>
+
+        <!-- Recent active loans on home -->
+        <div class="card">
+          <div class="card__title"><span>⏳</span> My Active Borrows</div>
+          <div class="loan-list" id="homeActiveLoansList">
+            <div class="empty-state"><span>📋</span><p>Loading…</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════ CATALOG VIEW ═══════ -->
+      <section class="view-section" id="view-catalog">
+        <div class="section-header">
+          <h2>📚 Book Catalog</h2>
+          <button class="btn-ghost" onclick="loadCatalog()" id="refresh-catalog">↻ Refresh</button>
+        </div>
+
+        <div class="search-bar">
+          <div class="search-wrapper">
+            <input type="text" class="search-input" id="catalogSearch" placeholder="Search by title or author…" oninput="filterCatalog()" />
+          </div>
+          <select class="filter-select" id="catalogFilter" onchange="filterCatalog()">
+            <option value="all">All Books</option>
+            <option value="available">Available Only</option>
+            <option value="unavailable">Borrowed</option>
+          </select>
+        </div>
+
+        <div class="book-grid" id="bookGrid">
+          <div class="empty-state" style="grid-column:1/-1"><span>📚</span><p>Loading catalog…</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════ MY LOANS VIEW ═══════ -->
+      <section class="view-section" id="view-my-loans">
+        <div class="section-header">
+          <h2>📋 My Loan History</h2>
+          <button class="btn-ghost" onclick="loadMyLoans()" id="refresh-my-loans">↻ Refresh</button>
+        </div>
+
+        <div class="card">
+          <div class="card__title"><span>📋</span> All My Loans</div>
+          <div class="loan-list" id="myLoansList">
+            <div class="empty-state"><span>📋</span><p>Loading loans…</p></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <div class="admin-link">
+      <a href="index.html">⚙️ Switch to Admin Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    /* ── Config ──────────────────────────────────────────── */
+    const API = 'http://localhost:4000/graphql';
+    let currentUser = null;
+    let allBooks = [];
+
+    /* ── GraphQL Helper ──────────────────────────────────── */
+    async function gql(query, variables = {}) {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors[0].message);
+      return json.data;
+    }
+
+    /* ── Toast Notifications ─────────────────────────────── */
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.textContent = (type === 'success' ? '✅ ' : '❌ ') + message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    /* ── Escape HTML helper ──────────────────────────────── */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── AUTH TAB SWITCHING ───────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    document.getElementById('authTabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.auth-tab');
+      if (!tab) return;
+
+      // Switch active tab
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      tab.classList.add('active');
+
+      const mode = tab.dataset.auth;
+      if (mode === 'login') {
+        document.getElementById('loginForm').classList.add('active');
+      } else {
+        document.getElementById('registerForm').classList.add('active');
+      }
+
+      // Hide register success if visible
+      document.getElementById('registerSuccess').classList.remove('visible');
+    });
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── LOGIN ────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if (!email || !password) return;
+
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.textContent = '⏳ Signing in…';
+
+      try {
+        const data = await gql(`mutation($email:String!,$password:String!){
+          loginUser(email:$email,password:$password){ user { id name email role phone createdAt } message }
+        }`, { email, password });
+
+        const user = data.loginUser.user;
+
+        // If admin, redirect to admin dashboard
+        if (user.role === 'admin') {
+          sessionStorage.setItem('libraryUser', JSON.stringify(user));
+          window.location.href = 'index.html';
+          return;
+        }
+
+        currentUser = user;
+        sessionStorage.setItem('libraryUser', JSON.stringify(user));
+
+        showApp();
+        showToast(`Welcome back, ${user.name}!`);
+      } catch (err) {
+        showToast(err.message.replace('Login failed: ', ''), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔑 Enter Library';
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── REGISTER ─────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    let justRegisteredUser = null;
+
+    async function handleRegister(e) {
+      e.preventDefault();
+
+      const name  = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+      const phone = document.getElementById('regPhone').value.trim() || null;
+
+      if (!name || !email || !password) return;
+
+      if (password !== passwordConfirm) {
+        showToast('Passwords do not match!', 'error');
+        return;
+      }
+
+      if (password.length < 4) {
+        showToast('Password must be at least 4 characters.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-register');
+      btn.disabled = true;
+      btn.textContent = '⏳ Creating account…';
+
+      try {
+        const data = await gql(`mutation($name:String!,$email:String!,$password:String!,$phone:String){
+          registerUser(name:$name,email:$email,password:$password,phone:$phone){ user { id name email role phone } message }
+        }`, { name, email, password, phone });
+
+        const newUser = data.registerUser.user;
+        justRegisteredUser = newUser;
+
+        // Hide register form, show success
+        document.getElementById('registerForm').classList.remove('active');
+        document.getElementById('registerSuccess').classList.add('visible');
+        document.getElementById('newUserName').textContent = newUser.name;
+
+        showToast(`Account created for ${newUser.name}!`);
+
+        // Clear form
+        document.getElementById('registerForm').reset();
+      } catch (err) {
+        showToast(err.message.replace('Failed to register user: ', ''), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📝 Create Account';
+      }
+    }
+
+    function enterAfterRegister() {
+      if (!justRegisteredUser) return;
+      currentUser = justRegisteredUser;
+      sessionStorage.setItem('libraryUser', JSON.stringify(currentUser));
+      justRegisteredUser = null;
+      document.getElementById('registerSuccess').classList.remove('visible');
+      showApp();
+      showToast(`Welcome, ${currentUser.name}! 🎉`);
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── LOGOUT ───────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    function handleLogout() {
+      currentUser = null;
+      justRegisteredUser = null;
+      sessionStorage.removeItem('libraryUser');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('appContainer').classList.remove('visible');
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+
+      // Reset auth tabs to login
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.getElementById('tab-login').classList.add('active');
+      document.getElementById('loginForm').classList.add('active');
+      document.getElementById('registerSuccess').classList.remove('visible');
+    }
+
+    function showApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appContainer').classList.add('visible');
+
+      // Populate user info
+      const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      document.getElementById('userAvatar').textContent = initials;
+      document.getElementById('displayUserName').textContent = currentUser.name;
+      document.getElementById('displayUserEmail').textContent = currentUser.email;
+      document.getElementById('welcomeName').textContent = currentUser.name.split(' ')[0];
+
+      // Load data
+      loadHomeData();
+    }
+
+    // Auto-login from session
+    async function tryAutoLogin() {
+      const saved = sessionStorage.getItem('libraryUser');
+      if (!saved) return;
+
+      try {
+        const user = JSON.parse(saved);
+        // If admin somehow ended up here, redirect
+        if (user.role === 'admin') {
+          window.location.href = 'index.html';
+          return;
+        }
+        currentUser = user;
+        showApp();
+      } catch (err) {
+        sessionStorage.removeItem('libraryUser');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── NAVIGATION ──────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    document.getElementById('navPills').addEventListener('click', (e) => {
+      const pill = e.target.closest('.nav-pill');
+      if (!pill) return;
+
+      document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      pill.classList.add('active');
+      document.getElementById('view-' + pill.dataset.view).classList.add('active');
+
+      const view = pill.dataset.view;
+      if (view === 'home')     loadHomeData();
+      if (view === 'catalog')  loadCatalog();
+      if (view === 'my-loans') loadMyLoans();
+    });
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── HOME VIEW ───────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    async function loadHomeData() {
+      if (!currentUser) return;
+
+      try {
+        // Load books stats
+        const bookData = await gql(`query { books { id available } }`);
+        const books = bookData.books || [];
+        document.getElementById('statTotalBooks').textContent = books.length;
+        document.getElementById('statAvailableBooks').textContent = books.filter(b => b.available).length;
+
+        // Load user's active loans
+        const loanData = await gql(`query { loans { id userId bookId loanDate dueDate returnDate status isOverdue user { name } book { title } } }`);
+        const allLoans = loanData.loans || [];
+        const myActiveLoans = allLoans.filter(l => String(l.userId) === String(currentUser.id) && l.status !== 'RETURNED');
+
+        document.getElementById('statMyActiveLoans').textContent = myActiveLoans.length;
+
+        const container = document.getElementById('homeActiveLoansList');
+        if (myActiveLoans.length === 0) {
+          container.innerHTML = '<div class="empty-state"><span>🎉</span><p>No active borrows! Browse the catalog to find your next read.</p></div>';
+          return;
+        }
+
+        container.innerHTML = myActiveLoans.map(l => {
+          let statusHtml = '';
+          let actionHtml = '';
+
+          const dDate = l.dueDate ? new Date(parseInt(l.dueDate)).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'No Due Date';
+
+          if (l.status === 'RETURN_REQUESTED') {
+            statusHtml = '<span class="badge-warning">⏳ Waiting Admin ACC</span>';
+            actionHtml = '<button class="btn-return" disabled style="opacity:0.5">⏳ Pending</button>';
+          } else if (l.isOverdue) {
+            statusHtml = '<span class="badge-danger" style="background:#ef4444;color:#fff;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;">🚨 OVERDUE</span>';
+            actionHtml = `<button class="btn-return" onclick="requestMyBookReturn(${l.id})" id="btn-return-home-${l.id}">📤 Request Return</button>`;
+          } else {
+            statusHtml = '<span class="badge-status active">⏳ Active</span>';
+            actionHtml = `<button class="btn-return" onclick="requestMyBookReturn(${l.id})" id="btn-return-home-${l.id}">📤 Request Return</button>`;
+          }
+
+          return `
+          <div class="loan-item">
+            <div class="loan-info">
+              <strong>"${escapeHtml(l.book ? l.book.title : 'Book #' + l.bookId)}"</strong>
+              <small>Due: ${dDate}</small>
+            </div>
+            <div class="loan-actions" style="display:flex; align-items:center; gap:0.5rem;">
+              ${statusHtml}
+              ${actionHtml}
+            </div>
+          </div>
+        `}).join('');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── CATALOG VIEW ────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    async function loadCatalog() {
+      try {
+        const data = await gql(`query { books { id title author isbn year available stock availableStock coverUrl } }`);
+        allBooks = data.books || [];
+        renderCatalog(allBooks);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function filterCatalog() {
+      const search = document.getElementById('catalogSearch').value.toLowerCase().trim();
+      const filter = document.getElementById('catalogFilter').value;
+
+      let filtered = [...allBooks];
+
+      if (search) {
+        filtered = filtered.filter(b =>
+          b.title.toLowerCase().includes(search) ||
+          b.author.toLowerCase().includes(search)
+        );
+      }
+
+      if (filter === 'available') {
+        filtered = filtered.filter(b => b.available);
+      } else if (filter === 'unavailable') {
+        filtered = filtered.filter(b => !b.available);
+      }
+
+      renderCatalog(filtered);
+    }
+
+    const bookEmojis = ['📕', '📗', '📘', '📙', '📔', '📒', '📓'];
+
+    function renderCatalog(books) {
+      const grid = document.getElementById('bookGrid');
+
+      if (books.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span>🔍</span><p>No books match your search.</p></div>';
+        return;
+      }
+
+      grid.innerHTML = books.map((b, i) => {
+        const coverContent = b.coverUrl 
+          ? `<img src="${escapeHtml(b.coverUrl)}" alt="Cover" style="width:100%; height:100%; object-fit:cover;" />` 
+          : `${bookEmojis[i % bookEmojis.length]}`;
+          
+        return `
+        <div class="book-card" id="book-card-${b.id}">
+          <div class="book-card__cover ${b.available ? 'available-bg' : 'unavailable-bg'} ${b.coverUrl ? 'has-image' : ''}" style="${b.coverUrl ? 'padding:0; overflow:hidden;' : ''}">
+            ${coverContent}
+          </div>
+          <div class="book-card__title">${escapeHtml(b.title)}</div>
+          <div class="book-card__author">by ${escapeHtml(b.author)}</div>
+          <div class="book-card__meta">
+            <span class="book-card__year">📅 ${b.year}</span>
+            <span class="badge ${b.available ? 'available' : 'unavailable'}">${b.available ? '● ' + b.availableStock + '/' + b.stock + ' Available' : '● 0 Available'}</span>
+          </div>
+          <button
+            class="btn-borrow-card"
+            onclick="borrowFromCatalog(${b.id})"
+            ${b.available ? '' : 'disabled'}
+            id="btn-borrow-${b.id}">
+            ${b.available ? '📤 Borrow this Book' : '🚫 Not Available'}
+          </button>
+        </div>
+      `}).join('');
+    }
+
+    async function borrowFromCatalog(bookId) {
+      if (!currentUser) return;
+
+      try {
+        await gql(`mutation($userId:ID!,$bookId:ID!){
+          borrowBook(userId:$userId,bookId:$bookId){ id loanDate book { title } user { name } }
+        }`, { userId: String(currentUser.id), bookId: String(bookId) });
+
+        const book = allBooks.find(b => b.id === bookId || String(b.id) === String(bookId));
+        showToast(`You borrowed "${book ? book.title : 'the book'}" successfully!`);
+
+        // Refresh data
+        loadCatalog();
+        loadHomeData();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── MY LOANS VIEW ───────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    async function loadMyLoans() {
+      if (!currentUser) return;
+
+      try {
+        const data = await gql(`query { loans { id userId bookId loanDate dueDate returnDate status isOverdue user { name } book { title } } }`);
+        const allLoans = data.loans || [];
+        const myLoans = allLoans.filter(l => String(l.userId) === String(currentUser.id));
+
+        const container = document.getElementById('myLoansList');
+
+        if (myLoans.length === 0) {
+          container.innerHTML = '<div class="empty-state"><span>📚</span><p>You haven\'t borrowed any books yet. Visit the catalog to find something to read!</p></div>';
+          return;
+        }
+
+        // Sort: active first, then by date descending
+        myLoans.sort((a, b) => {
+          if (!a.returnDate && b.returnDate) return -1;
+          if (a.returnDate && !b.returnDate) return 1;
+          return parseInt(b.loanDate) - parseInt(a.loanDate);
+        });
+
+        container.innerHTML = myLoans.map(l => {
+          const lDate = new Date(parseInt(l.loanDate)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          const dDate = l.dueDate ? new Date(parseInt(l.dueDate)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'No Due Date';
+          
+          let statusHtml = '';
+          let actionHtml = '';
+
+          if (l.status === 'RETURNED') {
+             statusHtml = '<span class="badge-status returned">✅ Returned</span>';
+          } else if (l.status === 'RETURN_REQUESTED') {
+             statusHtml = '<span class="badge-warning" style="padding:0.4rem 0.8rem; border-radius:999px; font-size:0.8rem;">⏳ Pending ACC</span>';
+             actionHtml = '<button class="btn-return" disabled style="opacity:0.5">⏳ Pending</button>';
+          } else if (l.isOverdue) {
+             statusHtml = '<span class="badge-danger" style="background:#ef4444;color:#fff;padding:0.4rem 0.8rem;border-radius:999px;font-size:0.8rem;">🚨 OVERDUE</span>';
+             actionHtml = `<button class="btn-return" onclick="requestMyBookReturn(${l.id})" id="btn-return-${l.id}">📤 Request Return</button>`;
+          } else {
+             statusHtml = '<span class="badge-status active">⏳ Active</span>';
+             actionHtml = `<button class="btn-return" onclick="requestMyBookReturn(${l.id})" id="btn-return-${l.id}">📤 Request Return</button>`;
+          }
+
+          return `
+          <div class="loan-item">
+            <div class="loan-info">
+              <strong>Loan #${l.id} — "${escapeHtml(l.book ? l.book.title : 'Book #' + l.bookId)}"</strong>
+              <small>Borrowed: ${lDate} &nbsp;·&nbsp; Due: ${dDate}</small>
+            </div>
+            <div class="loan-actions" style="display:flex; align-items:center; gap:0.5rem;">
+              ${statusHtml}
+              ${actionHtml}
+            </div>
+          </div>
+        `}).join('');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function requestMyBookReturn(loanId) {
+      if (!currentUser) return;
+      if (!confirm('Request admin to approve this return?')) return;
+
+      try {
+        await gql(`mutation($loanId:ID!){
+          requestReturn(loanId:$loanId){ id status book { title } }
+        }`, { loanId: String(loanId) });
+
+        showToast('Return requested! Waiting for admin approval. ⏳');
+
+        // Refresh everything
+        loadMyLoans();
+        loadHomeData();
+        loadCatalog();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ── INIT ────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════ */
+
+    tryAutoLogin();
+  </script>
+</body>
+</html>
