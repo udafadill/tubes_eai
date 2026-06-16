@@ -1008,7 +1008,7 @@
 
   <script>
     /* ── Config ──────────────────────────────────────────── */
-    const API = 'https://tubeseai-production.up.railway.app//graphql';
+    const API = 'https://tubeseai-production.up.railway.app/graphql';
 
     /* ── Tab Navigation ──────────────────────────────────── */
     document.getElementById('navTabs').addEventListener('click', (e) => {
@@ -1084,7 +1084,7 @@
           btn.textContent = '⏳ Uploading…';
           const formData = new FormData();
           formData.append('cover', coverFile);
-          const uploadRes = await fetch('http://localhost:4000/upload', { method: 'POST', body: formData });
+          const uploadRes = await fetch('https://tubeseai-production.up.railway.app/upload', { method: 'POST', body: formData });
           if (!uploadRes.ok) throw new Error('Upload failed');
           const uploadData = await uploadRes.json();
           uploadedCoverUrl = uploadData.url;
